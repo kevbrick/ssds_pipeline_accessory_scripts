@@ -7,24 +7,23 @@ These scripts are part of the nf-core implementation of the SSDS pipeline. They 
 
 ## Requirements:
 *Python modules :*
-    - biopython
-    - pysam
-    - pybedtools
+    <br>- biopython
+    <br>- pysam
+    <br>- pybedtools
 
 ### parse_SSDS_BAM.py
 ```
-parse_SSDS_BAM.py \
-  --bam <<bam - BAM from BWA-alignment of SSDS reads>>  \
+parse_SSDS_BAM.py
+  --bam <<bam - BAM from BWA-alignment of SSDS reads>>
   --name <<output file prefix>>
 ```
 
 ### parse_SSDS_BAM.py
 ```
-calculate_SPoT.py \
-calculate_SPoT.py \\
-  --reads <<BED file of reads/fragments>> \
-  --intervals <<BED file of intervals to test>> \
-  --name <<sample name>> \
-  --iname <<intervals name>> \
+calculate_SPoT.py
+  --reads <<BED file of reads/fragments>>
+  --intervals <<BED file of intervals to test>>
+  --name <<sample name>>
+  --iname <<intervals name>>
   --g <<genome index - FASTA.FAI file>>
 ```
