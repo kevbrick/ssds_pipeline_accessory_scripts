@@ -16,6 +16,7 @@ These scripts are part of the nf-core implementation of the SSDS pipeline. They 
 parse_SSDS_BAM.py
   --bam <<bam - BAM from BWA-alignment of SSDS reads>>
   --name <<output file prefix>>
+  --vers <<show version>>
 ```
 
 ### parse_SSDS_BAM.py
@@ -26,4 +27,7 @@ calculate_SPoT.py
   --name <<sample name>>
   --iname <<intervals name>>
   --g <<genome index - FASTA.FAI file>>
+  --o <<output report prefix - file will be $prefix.SSDS_SPoT_report.txt>>
+  --norand <<do not get SPoT for a randomized set>>
+  --vers <<show version>>
 ```
