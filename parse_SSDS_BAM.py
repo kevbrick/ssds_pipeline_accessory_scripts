@@ -85,7 +85,7 @@ def SORT_AND_INDEX(prefix):
 
 
 def PRINT_SSDS_REPORT(prefix, report_dict):
-    out_report = open(prefix + ".SSDS_parse_report.tab", "w")
+    out_report = open(prefix + ".SSDS_parse_report.txt", "w")
 
     for field in [
         "ssDNA_fragments",

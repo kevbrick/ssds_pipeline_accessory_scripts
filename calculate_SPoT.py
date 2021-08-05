@@ -33,15 +33,15 @@ rand_intervals_bed = (
     BedTool(args.intervals_bed).shuffle(g=args.g, chrom=True, seed=42).sort()
 )
 
-out_report = open(args.prefix + ".SSDS_SPoT_report.txt", "w")
+out_report = open(args.o + ".SSDS_SPoT_report.txt", "w")
 
 at_intervals = reads_bed.intersect(b=intervals_bed, u=True, sorted=True)
 interval_SPoT = round(float(at_intervals.count()) / float(reads_bed.count()), 3)
-out_report.print(args.name + "_SPoT\t" + args.iname + "\t" + str(interval_SPoT))
+out_report.write(args.name + "_SPoT\t" + args.iname + "\t" + str(interval_SPoT))
 
 if not args.norand:
     at_random = reads_bed.intersect(b=rand_intervals_bed, u=True, sorted=True)
     random_SPoT = round(float(at_random.count()) / float(reads_bed.count()), 3)
-    out_report.print(
+    out_report.write(
         args.name + "_SPoT\t" + args.iname + "(R)" + "\t" + str(random_SPoT)
     )
