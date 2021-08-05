@@ -11,7 +11,8 @@ These scripts are part of the nf-core implementation of the SSDS pipeline. They 
     <br>- pysam
     <br>- pybedtools
 
-### parse_SSDS_BAM.py
+### parse_SSDS_BAM.py\
+Parse the BWA-aligned BAM file from an SSDS experiment. Identifies DNA derived from ssDNA, dsDNA and other unclassifiable things. Outputs BED & BAM files for fragments of each type. 
 ```
 parse_SSDS_BAM.py
   --bam <<bam - BAM from BWA-alignment of SSDS reads>>
@@ -19,7 +20,8 @@ parse_SSDS_BAM.py
   --vers <<show version>>
 ```
 
-### parse_SSDS_BAM.py
+### calculate_SPoT.py
+Calculates the Signal Portion of Tags (SPoT) - actually fragments, but that's OK :) - for a given BED file of intervals. Generally used to check SSDS signal @ DSB hotspots / origins of replication.
 ```
 calculate_SPoT.py
   --reads <<BED file of reads/fragments>>
