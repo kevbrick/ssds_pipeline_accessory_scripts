@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description="Parse ssDNA from SSDS BAM file.")
 ## Allow "Just show version" mode
 parser.add_argument("--bam", help="BAM file to process")
 parser.add_argument("--name", help="Output file name/suffix")
+parser.add_argument("--mode", help="ss (ss only) or all (5 sub-types)", default="ss")
 parser.add_argument("--vers", action="store_true", help="Echo version")
 parser.add_argument("--v", action="store_true", help="Verbose mode")
 
@@ -89,9 +90,9 @@ def PRINT_SSDS_REPORT(prefix, report_dict):
 
     for field in [
         "ssDNA_fragments",
-        "ssDNA_type2_fragments",
-        "dsDNA_hiconf_fragments",
-        "dsDNA_loconf_fragments",
+        "ssLow_fragments",
+        "type2_fragments",
+        "dsDNA_fragments",
         "unclassified_fragments",
         "total_fragments",
         "valid_fragments",
@@ -103,9 +104,9 @@ def PRINT_SSDS_REPORT(prefix, report_dict):
 
     for type in [
         "ssDNA",
-        "ssDNA_type2",
-        "dsDNA_hiconf",
-        "dsDNA_loconf",
+        "ssLow",
+        "type2",
+        "dsDNA",
         "unclassified",
     ]:
         for rep_value in ["ITR", "uH", "FillIn", "Fragment"]:
@@ -129,20 +130,20 @@ samfile = pysam.AlignmentFile(args.bam, "rb")  # BAM file reader.
 
 names = {
     "ss": args.name + "_ssDNA",
-    "t2": args.name + "_ssDNA_type2",
-    "dL": args.name + "_dsDNA_loconf",
-    "dH": args.name + "_dsDNA_hiconf",
+    "sl": args.name + "_ssLow",
+    "t2": args.name + "_type2",
+    "ds": args.name + "_dsDNA",
     "uc": args.name + "_unclassified",
 }
 
-counts = {"ss": 0, "t2": 0, "dH": 0, "dL": 0, "uc": 0}
+counts = {"ss": 0, "sl": 0, "t2": 0, "ds": 0, "uc": 0}
 
 report_details = {
     "totinfo": {
         "ssDNA_fragments": 0,
-        "ssDNA_type2_fragments": 0,
-        "dsDNA_hiconf_fragments": 0,
-        "dsDNA_loconf_fragments": 0,
+        "ssLow_fragments": 0,
+        "type2_fragments": 0,
+        "dsDNA_fragments": 0,
         "unclassified_fragments": 0,
         "total_fragments": 0,
         "valid_fragments": 0,
@@ -152,9 +153,9 @@ report_details = {
 
 for frag_type in [
     "ssDNA",
-    "ssDNA_type2",
-    "dsDNA_hiconf",
-    "dsDNA_loconf",
+    "ssLow",
+    "type2",
+    "dsDNA",
     "unclassified",
 ]:
     for detail in ["ITR", "uH", "FillIn", "Fragment"]:
@@ -163,23 +164,23 @@ for frag_type in [
 out_bam_ssDNA = pysam.AlignmentFile(
     names["ss"] + ".queryname_sorted.bam", "wb", template=samfile
 )
+out_bam_ssLow = pysam.AlignmentFile(
+    names["sl"] + ".queryname_sorted.bam", "wb", template=samfile
+)
 out_bam_type2 = pysam.AlignmentFile(
     names["t2"] + ".queryname_sorted.bam", "wb", template=samfile
 )
-out_bam_dsLoC = pysam.AlignmentFile(
-    names["dL"] + ".queryname_sorted.bam", "wb", template=samfile
-)
-out_bam_dsHiC = pysam.AlignmentFile(
-    names["dH"] + ".queryname_sorted.bam", "wb", template=samfile
+out_bam_ds = pysam.AlignmentFile(
+    names["ds"] + ".queryname_sorted.bam", "wb", template=samfile
 )
 out_bam_unc = pysam.AlignmentFile(
     names["uc"] + ".queryname_sorted.bam", "wb", template=samfile
 )
 
 out_bed_ssDNA = open(names["ss"] + ".queryname_sorted.bed", "w")
+out_bed_ssLow = open(names["sl"] + ".queryname_sorted.bed", "w")
 out_bed_type2 = open(names["t2"] + ".queryname_sorted.bed", "w")
-out_bed_dsLoC = open(names["dL"] + ".queryname_sorted.bed", "w")
-out_bed_dsHiC = open(names["dH"] + ".queryname_sorted.bed", "w")
+out_bed_ds = open(names["ds"] + ".queryname_sorted.bed", "w")
 out_bed_unc = open(names["uc"] + ".queryname_sorted.bed", "w")
 
 read1 = None
@@ -220,7 +221,7 @@ for read in samfile:
             map = read2.get_reference_positions(full_length=True)
             fragment_strand = "-"
             fragment_start = read2.reference_start
-            fragment_end = read1.reference_start + read1.infer_read_length()
+            fragment_end = read1.reference_start + read1.reference_length
         else:
             if args.v:
                 print("R1 fwd")
@@ -229,7 +230,7 @@ for read in samfile:
             map = read2.get_reference_positions(full_length=True)[::-1]
             fragment_strand = "+"
             fragment_start = read1.reference_start
-            fragment_end = read2.reference_start + read2.infer_read_length()
+            fragment_end = read2.reference_start + read2.reference_length
 
         fragment_q = str(read1.mapping_quality) + "_" + str(read2.mapping_quality)
         fragment_length = fragment_end - fragment_start
@@ -332,23 +333,23 @@ for read in samfile:
             frag_type = "ssDNA"
             counts["ss"] = counts["ss"] + 1
 
-        elif itr > 5 and fillin <= 2 and uhomology >= 0:
+        elif fillin > 0 and args.mode == "all":
+            bam_out = out_bam_ssLow
+            bed_out = out_bed_ssLow
+            frag_type = "ssLow"
+            counts["sl"] = counts["sl"] + 1
+
+        elif itr >= 4 and fillin == 0 and args.mode == "all":
             bam_out = out_bam_type2
             bed_out = out_bed_type2
-            frag_type = "ssDNA_type2"
+            frag_type = "type2"
             counts["t2"] = counts["t2"] + 1
 
-        elif itr < 3 and uhomology < 1:
-            bam_out = out_bam_dsHiC
-            bed_out = out_bed_dsHiC
-            frag_type = "dsDNA_hiconf"
-            counts["dH"] = counts["dH"] + 1
-
-        elif itr < 3 and uhomology >= 1:
-            bam_out = out_bam_dsLoC
-            bed_out = out_bed_dsLoC
-            frag_type = "dsDNA_loconf"
-            counts["dL"] = counts["dL"] + 1
+        elif itr < 3 and fillin == 0 and args.mode == "all":
+            bam_out = out_bam_ds
+            bed_out = out_bed_ds
+            frag_type = "dsDNA"
+            counts["ds"] = counts["ds"] + 1
 
         else:
             bam_out = out_bam_unc
@@ -372,18 +373,21 @@ for read in samfile:
 
 
 out_bam_ssDNA.close()
+out_bam_ssLow.close()
 out_bam_type2.close()
-out_bam_dsLoC.close()
-out_bam_dsHiC.close()
+out_bam_ds.close()
 out_bam_unc.close()
 
 out_bed_ssDNA.close()
+out_bed_ssLow.close()
 out_bed_type2.close()
-out_bed_dsLoC.close()
-out_bed_dsHiC.close()
+out_bed_ds.close()
 out_bed_unc.close()
 
 for key in counts:
+    sys.stderr.write(
+        "## ITR_id.py: " + key + " : " + str(counts[key]) + " reads found !!\n"
+    )
     if counts[key] == 0:
         sys.stderr.write("## ITR_id.py: WARNING: NO " + key + " reads found !!\n")
         os.remove(names[key] + ".queryname_sorted.bam")
