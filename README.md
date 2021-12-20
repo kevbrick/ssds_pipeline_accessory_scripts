@@ -1,4 +1,4 @@
-# SSDS pipeline v2.0 Accessory Scripts:
+# SSDS pipeline Accessory Scripts:
 **_Initial paper:_** [Khil et al. Genome Research 2012](https://genome.cshlp.org/content/22/5/957.long)
 
 **_Technical paper:_** [Brick, Pratto et al., Methods in Enzymology 2018](https://www.sciencedirect.com/science/article/pii/S0076687917303750?via%3Dihub)
